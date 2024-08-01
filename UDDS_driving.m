@@ -116,6 +116,24 @@ end
 % Add current to the UDDS_unit table
 UDDS_unit.current = current;
 
+% Integrate the current over time to get the total charge in Ampere-seconds
+total_charge_As = trapz(time, current); 
+
+% Convert charge from Ampere-seconds to Ampere-hours (1 Ah = 3600 As)
+total_charge_Ah = total_charge_As / 3600;
+
+% Assume OCV (Open Circuit Voltage) is given or known
+OCV = 3.0; % Volts
+
+% Calculate the total energy in watt-hours (Wh)
+total_energy_Wh = total_charge_Ah * OCV;
+
+% Display the results
+fprintf('Total Charge: %.2f Ah\n', total_charge_Ah);
+fprintf('Total Energy: %.2f Wh\n', total_energy_Wh);
+
+
+
 % Plot current over time
 figure(4);
 plot(time, current);
@@ -123,9 +141,6 @@ xlabel('Time (seconds)');
 ylabel('Current (A)');
 title('Current vs Time');
 grid on;
-
-
-
 
 
 
