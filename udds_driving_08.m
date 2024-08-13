@@ -9,7 +9,7 @@ c = 0.014800 * 4.44822 / 0.44704^2; % lbf/mph^2 to N/(m/s)^2
 m = 1927.768; % vehicle mass in kg
 epsilon = 1.05;
 
-file_path = 'C:\Users\김준연\Documents\MATLAB\LFP_driving\uddscol.txt';
+file_path = 'C:\Users\USER\Documents\GitHub\LFP_driving\uddscol.txt';
 
 % Read the file
 UDDS_unit = readtable(file_path, 'Delimiter', '\t');
@@ -38,35 +38,6 @@ UDDS_unit.power = power;
 % Output results
 fprintf('Total Distance: %.2f km\n', sum(speed_ms(1:end-1) .* dt) / 1000);
 
-% Plot graphs
-figure;
-subplot(4,1,1);
-plot(time, speed_ms);
-xlabel('Time (seconds)');
-ylabel('Speed (m/s)');
-title('UDDS Speed');
-grid on;
-
-subplot(4,1,2);
-plot(time, acceleration);
-xlabel('Time (seconds)');
-ylabel('Acceleration (m/s^2)');
-title('UDDS Acceleration');
-grid on;
-
-subplot(4,1,3);
-plot(time, [0; cumsum(speed_ms(1:end-1) .* dt)] / 1000);
-xlabel('Time (seconds)');
-ylabel('Distance (km)');
-title('UDDS Distance');
-grid on;
-
-figure(2);
-plot(time, power);
-xlabel('Time (seconds)');
-ylabel('Power (W)');
-title('Power vs Time');
-grid on;
 
 %% Calculate current
 
@@ -143,12 +114,15 @@ fprintf('Total Distance: %.2f km\n', results.total_distance_km);
 fprintf('Total Charge: %.2f Ah\n', results.total_charge_Ah);
 fprintf('Total Energy: %.2f Wh\n', results.total_energy_Wh);
 
+
+%% PLOT
+
 % Plot C-rate over time
 figure(4);
 plot(time, C_rate);
 xlabel('Time (seconds)');
 ylabel('C-rate');
-title('C-rate vs Time');
+title('C-rate');
 grid on;
 
 % Plot scaled current over time
@@ -156,6 +130,58 @@ figure(5);
 plot(time, scaled_current);
 xlabel('Time (seconds)');
 ylabel('Scaled Current (A)');
-title('Scaled Current vs Time');
+title('Scaled Current');
 grid on;
+
+% Plot graphs
+figure;
+subplot(4,1,1);
+plot(time, speed_ms);
+xlabel('Time (seconds)');
+ylabel('Speed (m/s)');
+title('UDDS Speed');
+grid on;
+
+subplot(4,1,2);
+plot(time, acceleration);
+xlabel('Time (seconds)');
+ylabel('Acceleration (m/s^2)');
+title('UDDS Acceleration');
+grid on;
+
+subplot(4,1,3);
+plot(time, [0; cumsum(speed_ms(1:end-1) .* dt)] / 1000);
+xlabel('Time (seconds)');
+ylabel('Distance (km)');
+title('UDDS Distance');
+grid on;
+
+figure(2);
+plot(time, power);
+xlabel('Time (seconds)');
+ylabel('Power (W)');
+title('Power');
+grid on;
+
+
+%% Excel
+
+% Assuming previous parts of the code have been executed and we have the
+% UDDS_unit table with time and scaled_current calculated
+
+% Extract time and scaled_current from the UDDS_unit table
+time = UDDS_unit.time;
+scaled_current = UDDS_unit.scaled_current;
+
+% Create a new table with only the time and scaled_current
+output_table = table(time, scaled_current);
+
+% Define the output file path for the Excel file
+output_file_path = 'udds_unit_time_scaled_current.xlsx';
+
+% Write the table to an Excel file
+writetable(output_table, output_file_path);
+
+fprintf('Excel file created successfully: %s\n', output_file_path);
+
 
