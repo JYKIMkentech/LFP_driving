@@ -71,7 +71,7 @@ grid on;
 %% Calculate current
 
 % Parameters
-OCV = 3.2 * 106; % Open-circuit voltage in volts
+OCV = 357; % Open-circuit voltage in volts
 R = 0.009 * (16/23); % Resistance in ohms
 
 % Initialize current array
@@ -116,46 +116,14 @@ total_charge_Ah = total_charge_As / 3600;
 % Calculate the total energy in watt-hours (Wh)
 total_energy_Wh = total_charge_Ah * OCV;
 
-% Define nominal capacity of one cell and scaling factor
-nominal_capacity_Ah = 161; % Capacity of one cell in Ah
-scaling_factor_Ah = 23; % Scaling factor
+% Display the results
+fprintf('Total Charge: %.2f Ah\n', total_charge_Ah);
+fprintf('Total Energy: %.2f Wh\n', total_energy_Wh);
 
-% Calculate C-rate
-C_rate = current / nominal_capacity_Ah;
-
-% Calculate scaled current
-scaled_current = C_rate * scaling_factor_Ah;
-
-% Add C-rate and scaled current to the UDDS_unit table
-UDDS_unit.C_rate = C_rate;
-UDDS_unit.scaled_current = scaled_current;
-
-% Create a structure to store results
-results = struct();
-results.total_distance_km = sum(speed_ms(1:end-1) .* dt) / 1000;
-results.total_charge_Ah = total_charge_Ah;
-results.total_energy_Wh = total_energy_Wh;
-results.C_rate = C_rate;
-results.scaled_current = scaled_current;
-
-% Display results
-fprintf('Total Distance: %.2f km\n', results.total_distance_km);
-fprintf('Total Charge: %.2f Ah\n', results.total_charge_Ah);
-fprintf('Total Energy: %.2f Wh\n', results.total_energy_Wh);
-
-% Plot C-rate over time
-figure(4);
-plot(time, C_rate);
+% Plot current over time
+figure(3);
+plot(time, current);
 xlabel('Time (seconds)');
-ylabel('C-rate');
-title('C-rate vs Time');
+ylabel('Current (A)');
+title('Current vs Time');
 grid on;
-
-% Plot scaled current over time
-figure(5);
-plot(time, scaled_current);
-xlabel('Time (seconds)');
-ylabel('Scaled Current (A)');
-title('Scaled Current vs Time');
-grid on;
-
