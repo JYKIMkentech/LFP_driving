@@ -35,10 +35,6 @@ UDDS_unit.acceleration = acceleration;
 power = a * speed_ms + b * speed_ms.^2 + c * speed_ms.^3 + (1 + epsilon) * m * speed_ms .* acceleration;
 UDDS_unit.power = power;
 
-% Power conversion
-power_scaled = (power * 23) / (106 * 161);
-UDDS_unit.power_scaled = power_scaled;
-
 % Output results
 fprintf('Total Distance: %.2f km\n', sum(speed_ms(1:end-1) .* dt) / 1000);
 
@@ -72,25 +68,18 @@ ylabel('Power (W)');
 title('Power vs Time');
 grid on;
 
-figure(3);
-plot(time, power_scaled);
-xlabel('Time (seconds)');
-ylabel('Power scaled (W)');
-title('Power scaled vs Time');
-grid on;
-
 %% Calculate current
 
 % Parameters
-OCV = 3.2; % Open-circuit voltage in volts
+OCV = 3.0; % Open-circuit voltage in volts
 R = 0.009 * (16/23); % Resistance in ohms
 
 % Initialize current array
-current = zeros(size(UDDS_unit.power_scaled));
+current = zeros(size(UDDS_unit.power));
 
 % Solve quadratic equation for each time step
-for i = 1:length(UDDS_unit.power_scaled)
-    P = UDDS_unit.power_scaled(i);
+for i = 1:length(UDDS_unit.power)
+    P = UDDS_unit.power(i);
     a = -R;
     b = OCV;
     c = -P;
@@ -105,7 +94,7 @@ for i = 1:length(UDDS_unit.power_scaled)
         root2 = (-b - sqrt(discriminant)) / (2 * a);
         
         % Assuming we want the positive root since current cannot be negative
-        current(i) = min(root1, root2);
+        current(i) = max(root1, root2);
     else
         % If no real solution exists, set current to NaN
         current(i) = NaN;
@@ -132,17 +121,9 @@ fprintf('Total Charge: %.2f Ah\n', total_charge_Ah);
 fprintf('Total Energy: %.2f Wh\n', total_energy_Wh);
 
 % Plot current over time
-figure(4);
+figure(3);
 plot(time, current);
 xlabel('Time (seconds)');
 ylabel('Current (A)');
 title('Current vs Time');
 grid on;
-
-
-
-
-
-
-
-
