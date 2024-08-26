@@ -42,8 +42,8 @@ fprintf('Total Distance: %.2f km\n', sum(speed_ms(1:end-1) .* dt) / 1000);
 %% Calculate current
 
 % Parameters
-OCV = 3.2 * 106; % Open-circuit voltage in volts
-R = 0.009 * (16/23); % Resistance in ohms
+OCV = 3.2 * 106; % 342V
+R = 0.009 * (16/23); % 16Ah to 23Ah
 
 % Initialize current array
 current = zeros(size(UDDS_unit.power));
