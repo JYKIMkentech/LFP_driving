@@ -29,7 +29,6 @@ data_unit.Properties.VariableNames{1} = 'time';
 data_unit.Properties.VariableNames{2} = 'speed(mph)';
 
 % Separate the first column as time and the second as speed
-
 time = data_unit{:, 1};
 speed_mph = data_unit{:, 2};
 
@@ -93,32 +92,32 @@ grid on;
 %% Calculate current
 
 % Parameters
-OCV = 3.2 * 106; % Open-circuit voltage in volts
-R = 0.009 * 106 ; % Resistance in ohms
+OCV = 3.0 * 106; % Open-circuit voltage in volts
+R = 0.009 * 106; % Resistance in ohms
 
-% Initialize current 
+% Initialize current array
 current = zeros(size(data_unit.power));
 
-% 2차 방정식 해 구하기
+% Solve quadratic equation for each time step
 for i = 1:length(data_unit.power)
     P = data_unit.power(i);
-    a = -R;  % 106 series Resistance
-    b = OCV; % 106 series OCV
-    c = -P; % pack power
+    a = -R;
+    b = OCV;
+    c = -P;
 
-    % 판별식 계산
+    % Calculate discriminant
     discriminant = b^2 - 4 * a * c;
 
-    % 판별식 > 0 만 계산
+    % Check if discriminant is non-negative
     if discriminant >= 0
         % Compute the roots
         root1 = (-b + sqrt(discriminant)) / (2 * a);
         root2 = (-b - sqrt(discriminant)) / (2 * a);
         
-        % 전류의 두 해 중, min 값 가져오기
-        current(i) = min(root1, root2); % pack current = cell current
+        % Assuming we want the positive root since current cannot be negative
+        current(i) = min(root1, root2);
     else
-        % 허근일 경우 NaN 할당
+        % If no real solution exists, set current to NaN
         current(i) = NaN;
     end
 end
