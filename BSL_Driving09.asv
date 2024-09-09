@@ -1,0 +1,206 @@
+clc; clear; close all;
+
+%% 경로 설정
+base_path = 'G:\공유 드라이브\Battery Software Lab\0_Group Meeting\개인별_미팅자료\송우진\Cycles';
+
+% Cycle 폴더 설정
+cycle_folders = struct( ...
+    'HW', fullfile(base_path, 'Highway Cycle'), ...
+    'CITY', fullfile(base_path, 'City Cycle'));
+
+% 파일 목록 출력 및 선택
+disp('분석할 파일을 선택하세요:');
+disp('1. BSL_HW1');
+disp('2. BSL_HW2');
+disp('3. BSL_CITY1');
+disp('4. BSL_CITY2');
+file_choice = input('분석할 파일의 번호를 입력하세요 (1, 2, 3, 4): ');
+
+% 파일 선택에 따른 경로 설정
+if file_choice == 1
+    file_path = fullfile(cycle_folders.HW, '20190119_1903235.csv');
+    disp('BSL_HW1을 선택하셨습니다.');
+    drive_cycle_name = 'BSL_HW1';
+elseif file_choice == 2
+    file_path = fullfile(cycle_folders.HW, '다른파일명2.csv'); % 파일명 예시
+    disp('BSL_HW2를 선택하셨습니다.');
+    drive_cycle_name = 'BSL_HW2';
+elseif file_choice == 3
+    file_path = fullfile(cycle_folders.CITY, '다른파일명3.csv'); % 파일명 예시
+    disp('BSL_CITY1을 선택하셨습니다.');
+    drive_cycle_name = 'BSL_CITY1';
+elseif file_choice == 4
+    file_path = fullfile(cycle_folders.CITY, '다른파일명4.csv'); % 파일명 예시
+    disp('BSL_CITY2를 선택하셨습니다.');
+    drive_cycle_name = 'BSL_CITY2';
+else
+    error('잘못된 선택입니다. 1, 2, 3, 또는 4를 입력하세요.');
+end
+
+%% 데이터 로드 및 전처리
+% CSV 파일 읽기
+data_unit = readtable(file_path);
+
+data_unit.Properties.VariableNames{1} = 'data_time';
+data_unit.Properties.VariableNames{6} = 'speed';  % speed는 이미 m/s 단위이므로 변환 불필요
+
+data_unit.data_time = datetime(data_unit.data_time, 'InputFormat', 'yyyy-MM-dd HH:mm:ss');
+
+% 첫 번째 시간을 0초로 설정하고 상대 시간을 계산
+data_unit.time = seconds(data_unit.data_time - data_unit.data_time(1));
+% time 열을 data_unit에 추가
+time = data_unit.time;
+
+% 시간과 속도 추출
+speed_ms = data_unit.speed; [m]
+
+%% 가속도 및 거리 계산
+acceleration = zeros(size(speed_ms));
+
+% 중앙 차분법을 사용한 가속도 계산
+for i = 2:length(time)-1
+    acceleration(i) = (speed_ms(i+1) - speed_ms(i-1)) / (time(i+1) - time(i-1));
+end
+
+% 첫 번째 및 마지막 점에 대한 가속도 계산 (전진/후진 차분법)
+acceleration(1) = (speed_ms(2) - speed_ms(1)) / (time(2) - time(1));
+acceleration(end) = (speed_ms(end) - speed_ms(end-1)) / (time(end) - time(end-1));
+
+% 데이터에 가속도 추가
+data_unit.acceleration = acceleration;
+
+% 총 거리 계산
+total_distance_km = sum((speed_ms(1:end-1) .* diff(time))) / 1000;
+fprintf('총 주행 거리: %.2f km\n', total_distance_km);
+
+%% Power 모델 적용
+% Tesla Model 3 물리 상수
+a = 34.98 * 4.44822; % lbf to Newton
+b = 0.08650 * 4.44822 / 0.44704; % lbf/mph to N/(m/s)
+c = 0.014800 * 4.44822 / 0.44704^2; % lbf/mph^2 to N/(m/s)^2
+m_vehicle = 1927.768; % 차량 질량 [kg]
+epsilon = 1.05;
+
+% 배터리 팩 구성 및 셀 파라미터
+m_series = 106; % 직렬 셀 수
+n_parallel = 1; % 병렬 셀 수
+OCV_cell = 3.2; % [V]
+R_cell = 0.0009; % 저항 [ohm]
+nominal_capacity_Ah = 161; % [Ah]
+Scaling_nominal_capacity_Ah = 16; % [Ah]
+
+% 팩 파워 계산
+pack_power = a * speed_ms + b * speed_ms.^2 + c * speed_ms.^3 + (1 + epsilon) * m_vehicle * speed_ms .* acceleration;
+data_unit.pack_power = pack_power;
+
+% 셀 파워로 변환
+cell_power = pack_power / (m_series * n_parallel);
+data_unit.cell_power = cell_power;
+
+%% 전류 계산
+current = zeros(size(cell_power));
+
+for i = 1:length(cell_power)
+    P_cell = cell_power(i);
+    discriminant = OCV_cell^2 - 4 * (-R_cell) * (-P_cell);
+
+    if discriminant >= 0
+        root1 = (-OCV_cell + sqrt(discriminant)) / (-2 * R_cell);
+        root2 = (-OCV_cell - sqrt(discriminant)) / (-2 * R_cell);
+        current(i) = min(root1, root2);
+    else
+        current(i) = NaN;
+    end
+end
+
+data_unit.current = current;
+
+%% C-rate 및 스케일링된 전류 계산
+C_rate = current / nominal_capacity_Ah;
+scaled_current = C_rate * Scaling_nominal_capacity_Ah;
+
+data_unit.C_rate = C_rate;
+data_unit.scaled_current = scaled_current;
+
+% 총 충전량 및 사용량 계산
+positive_current = current(current > 0);
+positive_time = time(current > 0);
+
+total_charge_As = trapz(positive_time, positive_current);
+total_charge_Ah = total_charge_As / 3600;
+total_used_Ah = trapz(time,scaled_current) / 3600; 
+used_soc = (total_used_Ah/Scaling_nominal_capacity_Ah ) * 100;
+
+fprintf('총 사용 용량: %.2f Ah\n', total_used_Ah);
+fprintf('총 사용 SOC: %.2f %%\n', used_soc);
+
+%% 속도, 가속도, 거리 플롯
+figure;
+subplot(3,1,1);
+plot(time, speed_ms);
+xlabel('시간 (초)');
+ylabel('속도 (m/s)');
+title([drive_cycle_name ' 속도 vs 시간']);
+grid on;
+
+subplot(3,1,2);
+plot(time, acceleration);
+xlabel('시간 (초)');
+ylabel('가속도 (m/s^2)');
+title([drive_cycle_name ' 가속도 vs 시간']);
+grid on;
+
+subplot(3,1,3);
+plot(time, [0; cumsum(speed_ms(1:end-1) .* diff(time))] / 1000);
+xlabel('시간 (초)');
+ylabel('거리 (km)');
+title([drive_cycle_name ' 거리 vs 시간']);
+grid on;
+
+%% 파워 및 전류 플롯
+figure;
+subplot(2,1,1);
+plot(time, pack_power);
+xlabel('시간 (초)');
+ylabel('파워 (W)');
+title([drive_cycle_name ' 팩 파워 vs 시간']);
+grid on;
+
+subplot(2,1,2);
+plot(time, current);
+xlabel('시간 (초)');
+ylabel('전류 (A)');
+title([drive_cycle_name ' 셀 전류 vs 시간']);
+grid on;
+
+%% C-rate 및 스케일링된 전류 플롯
+figure;
+subplot(2,1,1);
+plot(time, C_rate);
+xlabel('시간 (초)');
+ylabel('C-rate');
+title([drive_cycle_name ' 셀 C-rate vs 시간']);
+grid on;
+
+subplot(2,1,2);
+plot(time, scaled_current);
+xlabel('시간 (초)');
+ylabel('전류 (A)');
+title([drive_cycle_name ' 스케일링된 셀 전류 vs 시간']);
+grid on;
+
+%% 결과를 엑셀로 저장
+output_table = table(time, scaled_current);
+
+if file_choice == 1
+    output_file_path = 'BSL_HW1_time_scaled_current.xlsx';
+elseif file_choice == 2
+    output_file_path = 'BSL_HW2_time_scaled_current.xlsx';
+elseif file_choice == 3
+    output_file_path = 'BSL_CITY1_time_scaled_current.xlsx';
+else
+    output_file_path = 'BSL_CITY2_time_scaled_current.xlsx';
+end
+
+writetable(output_table, output_file_path);
+fprintf('엑셀 파일이 성공적으로 생성되었습니다: %s\n', output_file_path);
