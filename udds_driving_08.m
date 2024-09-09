@@ -7,10 +7,10 @@ disp('2. HWYCOL (hwycol.txt)');
 file_choice = input('Enter the number of the file you want to process (1 or 2): ');
 
 if file_choice == 1
-    file_path = 'C:\Users\deu04\OneDrive\바탕 화면\ECM_github\LFP_driving\uddscol.txt';
+    file_path = 'C:\Users\USER\Documents\GitHub\LFP_driving\uddscol.txt';
     disp('You have selected UDDS.');
 elseif file_choice == 2
-    file_path = 'C:\Users\deu04\OneDrive\바탕 화면\ECM_github\LFP_driving\hwycol.txt';
+    file_path = 'C:\Users\USER\Documents\GitHub\LFP_driving\hwycol.txt';
     disp('You have selected HWYCOL.');
 else
     error('Invalid selection. Please enter 1 or 2.');
@@ -93,13 +93,8 @@ grid on;
 %% Calculate current
 
 % Parameters
-<<<<<<< HEAD
 OCV = 3.2 * 106; % 342V
-R = 0.009 * (16/23); % 16Ah to 23Ah
-=======
-OCV = 3.2 * 106; % Open-circuit voltage in volts
-R = 0.009 * 106 ; % Resistance in ohms
->>>>>>> 4f38fd1fc44b84ad5908de6742cafa7bdb6f6c5f
+R = 0.0009 * 106; % 16Ah to 23Ah
 
 % Initialize current 
 current = zeros(size(data_unit.power));
