@@ -225,7 +225,7 @@ fprintf('총 소요 시간: %.2f 초\n', total_time_seconds);
 output_table = table(time, scaled_current);
 
 % 파일 저장 경로 설정 (지정한 경로)
-output_folder = 'G:\공유 드라이브\BSL_CYCLE\LFP CYCLE\Processed';
+output_folder = 'G:\공유 드라이브\BSL_CYCLE\Driving cycle (16Ah)\Processed';
 
 % 엑셀 파일명 설정
 if file_choice == 1

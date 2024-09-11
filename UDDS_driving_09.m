@@ -3,8 +3,8 @@ clc; clear; close all;
 %% Parameters and File Paths
 % File paths
 file_paths = struct( ...
-    'udds', 'G:\공유 드라이브\BSL_CYCLE\LFP CYCLE\RAW\uddscol.txt', ...
-    'hwycol', 'G:\공유 드라이브\BSL_CYCLE\LFP CYCLE\RAW\hwycol.txt', ...
+    'udds', 'G:\공유 드라이브\BSL_CYCLE\Driving cycle (16Ah)\RAW\uddscol.txt', ...
+    'hwycol', 'G:\공유 드라이브\BSL_CYCLE\Driving cycle (16Ah)\RAW\hwycol.txt', ...
     'us06', 'G:\공유 드라이브\BSL_CYCLE\LFP CYCLE\RAW\us06col.txt'); % Added US06 file path
 
 % Physical constants for Power model (Tesla model 3)
@@ -206,12 +206,12 @@ fprintf('총 소요 시간: %.2f 초\n', total_time_seconds);
 output_table = table(time, scaled_current);
 
 % 파일 저장 경로 설정 (지정한 경로)
-output_folder = 'G:\공유 드라이브\BSL_CYCLE\LFP CYCLE\Processed';
+output_folder = 'G:\공유 드라이브\BSL_CYCLE\Driving cycle (16Ah)\Processed';
 
 if file_choice == 1
     output_file_name = 'udds_unit_time_scaled_current.xlsx';
 elseif file_choice == 2
-    output_file_name = 'hwycol_unit_time_scaled_current.xlsx';
+    output_file_name = 'hwfet_unit_time_scaled_current.xlsx';
 else
     output_file_name = 'us06_unit_time_scaled_current.xlsx'; % Save results for US06
 end
