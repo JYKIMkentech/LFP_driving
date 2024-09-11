@@ -2,7 +2,7 @@ clc; clear; close all;
 
 %% Parameters and File Path
 % File path
-file_path = 'C:\Users\deu04\OneDrive\바탕 화면\ECM_github\LFP_driving\WLTP-DHC-12-07e.xls';
+file_path = 'G:\공유 드라이브\BSL_CYCLE\LFP CYCLE\RAW\WLTP-DHC-12-07e.xls';
 
 % Physical constants for Power model (Tesla model 3)
 a = 34.98 * 4.44822; % lbf to Newton
@@ -92,6 +92,8 @@ scaled_current = C_rate * Scaling_nominal_capacity_Ah;
 data_unit.C_rate = C_rate;
 data_unit.ScaledCurrent = scaled_current;
 
+scaled_current = -scaled_current;
+
 % Total charge and energy calculations
 positive_current = current(current > 0);
 positive_time = time(current > 0);
@@ -147,7 +149,7 @@ grid on;
 %% Plot C-rate and Scaled Current
 figure;
 subplot(2,1,1);
-plot(time, C_rate);
+plot(time, -C_rate);
 xlabel('Time (seconds)');
 ylabel('C-rate');
 title('WLTC Cell C-rate vs Time');
@@ -160,8 +162,27 @@ ylabel('Current (A)');
 title('WLTC Scaled Cell Current vs Time');
 grid on;
 
+%% Display max speed, min speed , distance, elapsed time
+max_speed_kmh = max(speed_ms) * 3.6; % m/s를 km/h로 변환
+mean_speed_kmh = mean(speed_ms) * 3.6; % m/s를 km/h로 변환
+total_distance_km = sum((speed_ms(1:end-1) .* diff(time))) / 1000; % 총 주행 거리 (km)
+total_time_seconds = time(end) - time(1); % 총 소요시간 (초)
+
+% 결과 출력
+fprintf('최대 속도: %.2f km/h\n', max_speed_kmh);
+fprintf('평균 속도: %.2f km/h\n', mean_speed_kmh);
+fprintf('총 주행 거리: %.2f km\n', total_distance_km);
+fprintf('총 소요 시간: %.2f 초\n', total_time_seconds);
+
+
 %% Save Results to Excel
 output_table = table(time, scaled_current);
-output_file_path = 'WLTP_unit_time_scaled_current.xlsx';
+output_folder = 'G:\공유 드라이브\BSL_CYCLE\LFP CYCLE\Processed';  % 저장할 폴더 경로
+output_file_name = 'WLTP_unit_time_scaled_current.xlsx';  % 파일 이름
+
+% 파일 전체 경로 (디렉토리 + 파일명)
+output_file_path = fullfile(output_folder, output_file_name);
+
+% 테이블을 엑셀 파일로 저장
 writetable(output_table, output_file_path);
 fprintf('Excel file created successfully: %s\n', output_file_path);

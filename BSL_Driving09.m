@@ -135,6 +135,9 @@ data_unit.current = current;
 C_rate = current / nominal_capacity_Ah;
 scaled_current = C_rate * Scaling_nominal_capacity_Ah;
 
+% scaled_current에 음수 부호를 추가
+scaled_current = -scaled_current;
+
 data_unit.C_rate = C_rate;
 data_unit.scaled_current = scaled_current;
 
@@ -192,7 +195,7 @@ grid on;
 %% Plot C-rate and Scaled Current
 figure;
 subplot(2,1,1);
-plot(time, C_rate);
+plot(time, -C_rate);
 xlabel('Time (seconds)');
 ylabel('C-rate');
 title([drive_cycle_name ' Cell C-rate vs Time']);
@@ -221,8 +224,8 @@ fprintf('총 소요 시간: %.2f 초\n', total_time_seconds);
 %% 결과를 엑셀로 저장
 output_table = table(time, scaled_current);
 
-% file_path에서 디렉토리 경로 추출
-[folder_path, ~, ~] = fileparts(file_path);
+% 파일 저장 경로 설정 (지정한 경로)
+output_folder = 'G:\공유 드라이브\BSL_CYCLE\LFP CYCLE\Processed';
 
 % 엑셀 파일명 설정
 if file_choice == 1
@@ -236,8 +239,9 @@ else
 end
 
 % 파일 전체 경로 (디렉토리 + 파일명)
-output_file_path = fullfile(folder_path, output_file_name);
+output_file_path = fullfile(output_folder, output_file_name);
 
 % 테이블을 엑셀 파일로 저장
 writetable(output_table, output_file_path);
 fprintf('엑셀 파일이 성공적으로 생성되었습니다: %s\n', output_file_path);
+

@@ -3,9 +3,9 @@ clc; clear; close all;
 %% Parameters and File Paths
 % File paths
 file_paths = struct( ...
-    'udds', 'C:\Users\deu04\OneDrive\바탕 화면\ECM_github\LFP_driving\uddscol.txt', ...
-    'hwycol', 'C:\Users\deu04\OneDrive\바탕 화면\ECM_github\LFP_driving\hwycol.txt', ...
-    'us06', 'C:\Users\deu04\OneDrive\바탕 화면\ECM_github\LFP_driving\us06col.txt'); % Added US06 file path
+    'udds', 'G:\공유 드라이브\BSL_CYCLE\LFP CYCLE\RAW\uddscol.txt', ...
+    'hwycol', 'G:\공유 드라이브\BSL_CYCLE\LFP CYCLE\RAW\hwycol.txt', ...
+    'us06', 'G:\공유 드라이브\BSL_CYCLE\LFP CYCLE\RAW\us06col.txt'); % Added US06 file path
 
 % Physical constants for Power model (Tesla model 3)
 a = 34.98 * 4.44822; % lbf to Newton
@@ -117,6 +117,8 @@ data_unit.current = current;
 C_rate = current / nominal_capacity_Ah;
 scaled_current = C_rate * Scaling_nominal_capacity_Ah;
 
+scaled_current = -scaled_current;
+
 data_unit.C_rate = C_rate;
 data_unit.scaled_current = scaled_current;
 
@@ -174,7 +176,7 @@ grid on;
 %% Plot C-rate and Scaled Current
 figure;
 subplot(2,1,1);
-plot(time, C_rate);
+plot(time, -C_rate);
 xlabel('Time (seconds)');
 ylabel('C-rate');
 title([drive_cycle_name ' Cell C-rate vs Time']);
@@ -187,17 +189,38 @@ ylabel('Current (A)');
 title([drive_cycle_name ' Scaled Cell Current vs Time']);
 grid on;
 
+%% Display max speed, min speed , distance, elapsed time
+max_speed_kmh = max(speed_ms) * 3.6; % m/s를 km/h로 변환
+mean_speed_kmh = mean(speed_ms) * 3.6; % m/s를 km/h로 변환
+total_distance_km = sum((speed_ms(1:end-1) .* diff(time))) / 1000; % 총 주행 거리 (km)
+total_time_seconds = time(end) - time(1); % 총 소요시간 (초)
+
+% 결과 출력
+fprintf('최대 속도: %.2f km/h\n', max_speed_kmh);
+fprintf('평균 속도: %.2f km/h\n', mean_speed_kmh);
+fprintf('총 주행 거리: %.2f km\n', total_distance_km);
+fprintf('총 소요 시간: %.2f 초\n', total_time_seconds);
+
+
 %% Save Results to Excel
 output_table = table(time, scaled_current);
 
+% 파일 저장 경로 설정 (지정한 경로)
+output_folder = 'G:\공유 드라이브\BSL_CYCLE\LFP CYCLE\Processed';
+
 if file_choice == 1
-    output_file_path = 'udds_unit_time_scaled_current.xlsx';
+    output_file_name = 'udds_unit_time_scaled_current.xlsx';
 elseif file_choice == 2
-    output_file_path = 'hwycol_unit_time_scaled_current.xlsx';
+    output_file_name = 'hwycol_unit_time_scaled_current.xlsx';
 else
-    output_file_path = 'us06_unit_time_scaled_current.xlsx'; % Save results for US06
+    output_file_name = 'us06_unit_time_scaled_current.xlsx'; % Save results for US06
 end
 
+% 파일 전체 경로 (디렉토리 + 파일명)
+output_file_path = fullfile(output_folder, output_file_name);
+
+% 테이블을 엑셀 파일로 저장
 writetable(output_table, output_file_path);
 fprintf('Excel file created successfully: %s\n', output_file_path);
+
 
