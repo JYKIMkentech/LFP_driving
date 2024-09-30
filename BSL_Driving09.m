@@ -103,7 +103,7 @@ n_parallel = 1; % 병렬 셀 수
 OCV_cell = 3.2; % [V]
 R_cell = 0.0009; % 저항 [ohm]
 nominal_capacity_Ah = 161; % [Ah]
-Scaling_nominal_capacity_Ah = 16; % [Ah]
+Scaling_nominal_capacity_Ah = 55.6; % [Ah] % NE_CELL = 55.6Ah
 
 % 팩 파워 계산
 pack_power = a * speed_ms + b * speed_ms.^2 + c * speed_ms.^3 + (1 + epsilon) * m_vehicle * speed_ms .* acceleration;
@@ -225,7 +225,7 @@ fprintf('총 소요 시간: %.2f 초\n', total_time_seconds);
 output_table = table(time, scaled_current);
 
 % 파일 저장 경로 설정 (지정한 경로)
-output_folder = 'G:\공유 드라이브\BSL_CYCLE\Driving cycle (16Ah)\Processed';
+output_folder = 'G:\공유 드라이브\Battery Software Lab\Driving cycle\55.6Ah_NE\Processed';
 
 % 엑셀 파일명 설정
 if file_choice == 1

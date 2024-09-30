@@ -2,7 +2,7 @@ clc; clear; close all;
 
 %% Parameters and File Path
 % File path
-file_path = 'G:\공유 드라이브\BSL_CYCLE\Driving cycle (16Ah)\RAW\WLTP-DHC-12-07e.xls';
+file_path = 'G:\공유 드라이브\Battery Software Lab\Driving cycle\55.6Ah_NE\RAW\WLTP-DHC-12-07e.xls';
 
 % Physical constants for Power model (Tesla model 3)
 a = 34.98 * 4.44822; % lbf to Newton
@@ -19,7 +19,7 @@ n_parallel = 1; % Number of parallel strings
 OCV_cell = 3.2; % [V] 
 R_cell = 0.0009; % Resistance [ohm]
 nominal_capacity_Ah = 161; % [Ah]
-Scaling_nominal_capacity_Ah = 16; % [Ah]
+Scaling_nominal_capacity_Ah = 55.6; % [Ah] % NE_CELL = 55.6Ah
 
 %% Data Loading and Preprocessing
 % Read the Excel file
@@ -177,7 +177,7 @@ fprintf('총 소요 시간: %.2f 초\n', total_time_seconds);
 
 %% Save Results to Excel
 output_table = table(time, scaled_current);
-output_folder = 'G:\공유 드라이브\BSL_CYCLE\Driving cycle (16Ah)\Processed';  % 저장할 폴더 경로
+output_folder = 'G:\공유 드라이브\Battery Software Lab\Driving cycle\55.6Ah_NE\Processed';  % 저장할 폴더 경로
 output_file_name = 'WLTP_unit_time_scaled_current.xlsx';  % 파일 이름
 
 % 파일 전체 경로 (디렉토리 + 파일명)
