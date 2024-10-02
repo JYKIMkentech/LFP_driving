@@ -91,26 +91,27 @@ fprintf('총 주행 거리: %.2f km\n', total_distance_km);
 
 %% Power 모델 적용
 % Tesla Model 3 물리 상수
-a = 34.98 * 4.44822; % lbf to Newton
-b = 0.08650 * 4.44822 / 0.44704; % lbf/mph to N/(m/s)
-c = 0.014800 * 4.44822 / 0.44704^2; % lbf/mph^2 to N/(m/s)^2
-m_vehicle = 1927.768; % 차량 질량 [kg]
+a = 28.990 * 4.44822; % lbf to Newton
+b = 0.4592 * 4.44822 / 0.44704; % lbf/mph to N/(m/s)
+c = 0.011100 * 4.44822 / 0.44704^2; % lbf/mph^2 to N/(m/s)^2
+m_vehicle = 2154.564; % vehicle mass in [kg]
 epsilon = 1.05;
 
 % 배터리 팩 구성 및 셀 파라미터
-m_series = 106; % 직렬 셀 수
-n_parallel = 1; % 병렬 셀 수
-OCV_cell = 3.2; % [V]
-R_cell = 0.0009; % 저항 [ohm]
-nominal_capacity_Ah = 161; % [Ah]
-Scaling_nominal_capacity_Ah = 16; % [Ah]
+m_series = 6; % 직렬 셀 수
+n_parallel = 74; % 병렬 셀 수
+OCV_cell = 3.66; % [V]
+R_cell = 0.03; % 저항 [ohm]
+nominal_capacity_Ah = 3.4; % [Ah]
+Scaling_nominal_capacity_Ah = 55.6; % [Ah]
+k = 16 ; % module 수 
 
 % 팩 파워 계산
 pack_power = a * speed_ms + b * speed_ms.^2 + c * speed_ms.^3 + (1 + epsilon) * m_vehicle * speed_ms .* acceleration;
 data_unit.pack_power = pack_power;
 
 % 셀 파워로 변환
-cell_power = pack_power / (m_series * n_parallel);
+cell_power = pack_power / (m_series * n_parallel * k);
 data_unit.cell_power = cell_power;
 
 %% 전류 계산
@@ -225,7 +226,7 @@ fprintf('총 소요 시간: %.2f 초\n', total_time_seconds);
 output_table = table(time, scaled_current);
 
 % 파일 저장 경로 설정 (지정한 경로)
-output_folder = 'G:\공유 드라이브\BSL_CYCLE\Driving cycle (16Ah)\Processed';
+output_folder = 'G:\공유 드라이브\Battery Software Lab\Driving cycle\55.6Ah_NE\Processed';
 
 % 엑셀 파일명 설정
 if file_choice == 1
