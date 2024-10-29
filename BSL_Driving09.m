@@ -1,12 +1,12 @@
 clc; clear; close all;
 
 %% 경로 설정
-base_path = 'G:\공유 드라이브\Battery Software Lab\0_Group Meeting\개인별_미팅자료\송우진\Cycles';
+base_path = 'G:\공유 드라이브\Battery Software Lab\Driving cycle\55.6Ah_NE\RAW';
 
 % Cycle 폴더 설정
 cycle_folders = struct( ...
-    'HW', fullfile(base_path, 'Highway Cycle'), ...
-    'CITY', fullfile(base_path, 'City Cycle'));
+    'HW', fullfile(base_path), ...
+    'CITY', fullfile(base_path));
 
 % 파일 목록 출력 및 선택
 disp('분석할 파일을 선택하세요:');
@@ -100,7 +100,7 @@ epsilon = 1.05;
 % 배터리 팩 구성 및 셀 파라미터
 m_series = 6; % 직렬 셀 수
 n_parallel = 74; % 병렬 셀 수
-OCV_cell = 3.66; % [V]
+OCV_cell = 3.6; % [V]
 R_cell = 0.03; % 저항 [ohm]
 nominal_capacity_Ah = 3.4; % [Ah]
 Scaling_nominal_capacity_Ah = 55.6; % [Ah]
@@ -141,6 +141,10 @@ scaled_current = -scaled_current;
 
 data_unit.C_rate = C_rate;
 data_unit.scaled_current = scaled_current;
+
+% 누적 충전량(Q) 계산
+Q = cumtrapz(time, abs(scaled_current)) / 3600; % 초를 시간으로 변환하여 Ah 단위로
+data_unit.Q = Q;
 
 % 총 충전량 및 사용량 계산
 positive_current = current(current > 0);
@@ -193,7 +197,7 @@ ylabel('Current (A)');
 title([drive_cycle_name ' Cell Current vs Time']);
 grid on;
 
-%% Plot C-rate and Scaled Current
+%% Plot C-rate and Scaled Current with Q
 figure;
 subplot(2,1,1);
 plot(time, -C_rate);
@@ -203,11 +207,40 @@ title([drive_cycle_name ' Cell C-rate vs Time']);
 grid on;
 
 subplot(2,1,2);
-plot(time, scaled_current);
+yyaxis left
+plot(time, scaled_current, 'b');
 xlabel('Time (seconds)');
-ylabel('Current (A)');
-title([drive_cycle_name ' Scaled Cell Current vs Time']);
+ylabel('Scaled Current (A)');
+title([drive_cycle_name ' Scaled Cell Current and Q vs Time']);
 grid on;
+
+yyaxis right
+plot(time, Q, 'r');
+ylabel('Cumulative Charge Q (Ah)');
+legend('Scaled Current (A)', 'Q (Ah)');
+
+
+%% 1028 figure 추가
+
+% 색상 매트릭스 정의
+c_mat = lines(2); % 첫 번째 색상: 파란색, 두 번째 색상: 빨간색
+
+% Figure 4 생성
+figure(4)
+yyaxis left
+plot(time, scaled_current, 'Color', c_mat(1,:), 'LineWidth', 1.5);
+xlabel('Time (seconds)', 'FontSize', 12, 'Color', 'k'); 
+ylabel('Current (A)', 'FontSize', 12, 'Color', c_mat(1,:)); 
+title([drive_cycle_name 'Current and Q vs Time'], 'FontSize', 12, 'Color', 'k', 'FontWeight', 'bold'); 
+grid on;
+
+yyaxis right
+plot(time, Q, 'Color', c_mat(2,:), 'LineWidth', 1.5);
+ylabel('Cumulative Charge Q (Ah)', 'FontSize', 12, 'Color', c_mat(2,:)); 
+legend('Current (A)', 'Q (Ah)', 'Location', 'best');
+
+
+
 
 %% Display max speed, min speed , distance, elapsed time
 max_speed_kmh = max(speed_ms) * 3.6; % m/s를 km/h로 변환
@@ -223,26 +256,25 @@ fprintf('총 소요 시간: %.2f 초\n', total_time_seconds);
 
 
 %% 결과를 엑셀로 저장
-output_table = table(time, scaled_current);
-
-% 파일 저장 경로 설정 (지정한 경로)
-output_folder = 'G:\공유 드라이브\Battery Software Lab\Driving cycle\55.6Ah_NE\Processed';
-
-% 엑셀 파일명 설정
-if file_choice == 1
-    output_file_name = 'BSL_HW1_time_scaled_current.xlsx';
-elseif file_choice == 2
-    output_file_name = 'BSL_HW2_time_scaled_current.xlsx';
-elseif file_choice == 3
-    output_file_name = 'BSL_CITY1_time_scaled_current.xlsx';
-else
-    output_file_name = 'BSL_CITY2_time_scaled_current.xlsx';
-end
-
-% 파일 전체 경로 (디렉토리 + 파일명)
-output_file_path = fullfile(output_folder, output_file_name);
-
-% 테이블을 엑셀 파일로 저장
-writetable(output_table, output_file_path);
-fprintf('엑셀 파일이 성공적으로 생성되었습니다: %s\n', output_file_path);
-
+% output_table = table(time, scaled_current, Q);
+% 
+% % 파일 저장 경로 설정 (지정한 경로)
+% output_folder = 'G:\공유 드라이브\Battery Software Lab\Driving cycle\55.6Ah_NE\Processed';
+% 
+% % 엑셀 파일명 설정
+% if file_choice == 1
+%     output_file_name = 'BSL_HW1_time_scaled_current_Q.xlsx';
+% elseif file_choice == 2
+%     output_file_name = 'BSL_HW2_time_scaled_current_Q.xlsx';
+% elseif file_choice == 3
+%     output_file_name = 'BSL_CITY1_time_scaled_current_Q.xlsx';
+% else
+%     output_file_name = 'BSL_CITY2_time_scaled_current_Q.xlsx';
+% end
+% 
+% % 파일 전체 경로 (디렉토리 + 파일명)
+% output_file_path = fullfile(output_folder, output_file_name);
+% 
+% % 테이블을 엑셀 파일로 저장
+% writetable(output_table, output_file_path);
+% fprintf('엑셀 파일이 성공적으로 생성되었습니다: %s\n', output_file_path);
