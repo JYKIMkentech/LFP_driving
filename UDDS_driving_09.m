@@ -22,7 +22,11 @@ n_parallel = 1; % Number of parallel strings
 OCV_cell = 3.2; % [V] 
 R_cell = 0.0009; % Resistance [ohm]
 nominal_capacity_Ah = 161; % [Ah]
+<<<<<<< HEAD
 Scaling_nominal_capacity_Ah = 55.6; % [Ah] 
+=======
+Scaling_nominal_capacity_Ah = 55.6; % [Ah] % NE_CELL = 55.6Ah
+>>>>>>> f7debf42ccce7245e50e33485fcc49607ddf555e
 
 %% File Selection
 disp('Select the file to analyze:');

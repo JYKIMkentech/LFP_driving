@@ -16,11 +16,18 @@ m_series = 6; % Number of cells in series
 n_parallel = 74; % Number of parallel strings
 
 % Battery parameters for a single cell
+<<<<<<< HEAD
 OCV_cell = 3.66; % [V] 
 R_cell = 0.03 ;% Resistance [ohm]
 nominal_capacity_Ah = 3.4; % [Ah]
 Scaling_nominal_capacity_Ah = 55.6; % [Ah]
 k = 16; % number of modules
+=======
+OCV_cell = 3.2; % [V] 
+R_cell = 0.0009; % Resistance [ohm]
+nominal_capacity_Ah = 161; % [Ah]
+Scaling_nominal_capacity_Ah = 55.6; % [Ah] % NE_CELL = 55.6Ah
+>>>>>>> f7debf42ccce7245e50e33485fcc49607ddf555e
 
 %% Data Loading and Preprocessing
 % Read the Excel file
